@@ -1,4 +1,4 @@
-#define INTEL 0		//INTEL for intel skylake, IBM for power8
+#define IBM 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
 #define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
@@ -187,7 +187,7 @@ int main (int argc, char** argv)
 	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", residue, tx.load(), aborts.load());
 
 #ifdef IBM	
-	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n", conflicts, illegal, footprint, nesting, userAbort, persistent);
+	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n", conflicts, illegal, capacity, nesting, userAbort, persistent);
 #endif
 #ifdef INTEL
 	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n", conflicts, retry, capacity, nesting, userAbort);
