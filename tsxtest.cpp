@@ -1,4 +1,6 @@
-#define INTEL 0
+#define INTEL 0		//INTEL for intel skylake, IBM for power8
+#define RELEASE 0	//DEBUG for printing dump
+#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -22,8 +24,8 @@ using namespace std;
 using namespace std::chrono;
 using namespace std::this_thread;
 
-std::atomic<long long unsigned> tx(0);//         = 0;
-std::atomic<long long unsigned> aborts(0);//     = 0;
+std::atomic<long long unsigned> tx (0);		//counter of successful transactions
+std::atomic<long long unsigned> aborts (0);	//counter of aborts
 long long unsigned conflicts  = 0;
 long long unsigned retry      = 0;	//only for Intel
 long long unsigned illegal    = 0;	//only for IBM
@@ -32,32 +34,26 @@ long long unsigned nesting    = 0;
 long long unsigned userAbort  = 0;
 long long unsigned persistent = 0;	//only for IBM
 
-int tmp;
-//char tmpArray [256];
+int tmp;	//the global variable where we make writes inside of transaction
 
 void test (const int volume, int threadNum, int residue)
 {
 #ifdef IBM
-	TM_buff_type TM_buff;	//@@@@
+	TM_buff_type TM_buff;	
 #endif
 
 	for (int i = 0; i < volume; i++)
 	{
 		sleep_until(system_clock::now() + milliseconds(residue));
-//		auto volatile v = tmp; 
-//		auto volatile vt = volume;
 #ifdef INTEL
 		unsigned status = _xbegin();
 		if (status == _XBEGIN_STARTED)
 #endif
 #ifdef IBM
-		if ( __TM_begin (TM_buff) )	//@@@@
+		if ( __TM_begin (TM_buff) )	
 #endif
 		{
 			tmp = threadNum;
-//			tmpArray[i%256] = (threadNum*1000)%256;
-			//tmp = (threadNum * 2)/10;
-			//tmp += threadNum/7;
 #ifdef INTEL
 			_xend();
 #endif
@@ -75,20 +71,26 @@ void test (const int volume, int threadNum, int residue)
 			if (status == _XABORT_CONFLICT)
 #endif
 			{
-//				printf ("Conflict! \n");
+#ifdef DEBUG
+				printf ("Conflict! \n");
+#endif
 				conflicts++;
 			}
 #ifdef IBM
 			else if (__TM_is_illegal (TM_buff) )
 			{
-//				printf ("Illegal! \n");
+#ifdef DEBUG
+				printf ("Illegal! \n");
+#endif
 				illegal++;
 			}
 #endif
 #ifdef INTEL
 			else if (status == _XABORT_RETRY)
 			{
-//				printf ("Illegal! \n");
+#ifdef DEBUG
+				printf ("Illegal! \n");
+#endif
 				retry++;
 			}
 #endif
@@ -99,7 +101,9 @@ void test (const int volume, int threadNum, int residue)
 			else if (status == _XABORT_CAPACITY)
 #endif
 			{
-//				printf ("Cache Line! \n");
+#ifdef DEBUG
+				printf ("Capacity! \n");
+#endif
 				capacity++;
 			}
 #ifdef IBM
@@ -109,7 +113,9 @@ void test (const int volume, int threadNum, int residue)
 			else if (status == _XABORT_NESTED)
 #endif
 			{
-//				printf ("Nested too deep! \n");
+#ifdef DEBUG
+				printf ("Nested too deep! \n");
+#endif
 				nesting++;
 			}
 #ifdef IBM
@@ -119,19 +125,25 @@ void test (const int volume, int threadNum, int residue)
 			else if (status == _XABORT_EXPLICIT)
 #endif
 			{
-//				printf ("User abort! \n");
+#ifdef DEBUG
+				printf ("User abort! \n");
+#endif
 				userAbort++;
 			}
 #ifdef IBM
 			else if (__TM_is_failure_persistent (TM_buff) )
 			{
-//				printf ("Persistent failure! \n");
+#ifdef DEBUG
+				printf ("Persistent failure! \n");
+#endif
 				persistent++;
 			}
 #endif
 			else 
 			{
-//				printf ("Unknown reason :( \n");
+#ifdef DEBUG
+				printf ("Unknown reason :( \n");
+#endif
 			}
 			
 //				printf ("Failure address: %ld; Failure code: %lld\n", __TM_failure_address (TM_buff), __TM_failure_code (TM_buff));
