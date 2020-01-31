@@ -191,7 +191,12 @@ int main (int argc, char** argv)
 		thr[i].join ();
 	}
 
-	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", residue, tx.load(), aborts.load());
+#ifdef FREQTEST
+	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+#endif
+#ifdef MEMTEST
+	printf ("number of transactions and aborts with allocated memory of %d bytes before transaction: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+#endif
 
 #ifdef IBM	
 	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts, illegal, capacity, nesting, userAbort, persistent);
