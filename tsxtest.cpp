@@ -1,6 +1,6 @@
 #define IBM 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -34,16 +34,27 @@ long long unsigned nesting    = 0;
 long long unsigned userAbort  = 0;
 long long unsigned persistent = 0;	//only for IBM
 
-int tmp;	//the global variable where we make writes inside of transaction
+char* tmp;	//the global variable where we make writes inside of transaction
 
-void test (const int volume, int threadNum, int residue)
+void test (const int volume, int threadNum, int param)
 {
+	int memory = 16;
+	int residue = 10;
+	int iter = 0;
 #ifdef IBM
 	TM_buff_type TM_buff;	
 #endif
 
 	for (int i = 0; i < volume; i++)
 	{
+#ifdef FREQTEST
+		residue = param;
+#endif
+#ifdef MEMTEST
+		memory = param;
+#endif
+		iter = rand() % memory;
+		tmp = (char*) calloc (memory, sizeof(char));
 		sleep_until(system_clock::now() + milliseconds(residue));
 #ifdef INTEL
 		unsigned status = _xbegin();
@@ -53,7 +64,7 @@ void test (const int volume, int threadNum, int residue)
 		if ( __TM_begin (TM_buff) )	
 #endif
 		{
-			tmp = threadNum;
+			tmp[iter] = threadNum;
 #ifdef INTEL
 			_xend();
 #endif
