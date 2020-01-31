@@ -170,21 +170,17 @@ void test (const int volume, int threadNum, int param)
 int main (int argc, char** argv)
 {
 	int maxThreads = 10;
-	int residue = 10;
+	int param = 10;
 	if (argc > 1)
 	{
-		residue = atoi(argv[1]);
-	}
-	else
-	{
-		residue = 10;
+		param = atoi(argv[1]);
 	}
 
 	std::thread thr[maxThreads];
 	
 	for (int i = 0; i < maxThreads; i++)
 	{
-		thr[i] = std::thread (test, NUMOFTRANS/maxThreads, i, residue);		
+		thr[i] = std::thread (test, NUMOFTRANS/maxThreads, i, param);		
 		cpu_set_t cpuset;
 		CPU_ZERO (&cpuset);
 		pthread_setaffinity_np (thr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
@@ -198,9 +194,9 @@ int main (int argc, char** argv)
 	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", residue, tx.load(), aborts.load());
 
 #ifdef IBM	
-	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n", conflicts, illegal, capacity, nesting, userAbort, persistent);
+	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts, illegal, capacity, nesting, userAbort, persistent);
 #endif
 #ifdef INTEL
-	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n", conflicts, retry, capacity, nesting, userAbort);
+	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts, retry, capacity, nesting, userAbort);
 #endif
 }
