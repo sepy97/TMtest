@@ -1,6 +1,6 @@
 #define INTEL 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -79,7 +79,7 @@ void test (const int volume, int threadNum, int param)
 			if (__TM_is_conflict (TM_buff) )
 #endif
 #ifdef INTEL
-			if (status == _XABORT_CONFLICT)
+			if (status & _XABORT_CONFLICT)
 #endif
 			{
 #ifdef DEBUG
@@ -97,7 +97,7 @@ void test (const int volume, int threadNum, int param)
 			}
 #endif
 #ifdef INTEL
-			else if (status == _XABORT_RETRY)
+			else if (status & _XABORT_RETRY)
 			{
 #ifdef DEBUG
 				printf ("Illegal! \n");
@@ -109,7 +109,7 @@ void test (const int volume, int threadNum, int param)
 			else if (__TM_is_footprint_exceeded (TM_buff) )
 #endif
 #ifdef INTEL
-			else if (status == _XABORT_CAPACITY)
+			else if (status & _XABORT_CAPACITY)
 #endif
 			{
 #ifdef DEBUG
@@ -121,7 +121,7 @@ void test (const int volume, int threadNum, int param)
 			else if (__TM_is_nested_too_deep (TM_buff) )
 #endif
 #ifdef INTEL
-			else if (status == _XABORT_NESTED)
+			else if (status & _XABORT_NESTED)
 #endif
 			{
 #ifdef DEBUG
@@ -133,7 +133,7 @@ void test (const int volume, int threadNum, int param)
 			else if (__TM_is_user_abort (TM_buff) )
 #endif
 #ifdef INTEL
-			else if (status == _XABORT_EXPLICIT)
+			else if (status & _XABORT_EXPLICIT)
 #endif
 			{
 #ifdef DEBUG
