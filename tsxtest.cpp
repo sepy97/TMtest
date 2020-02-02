@@ -1,4 +1,4 @@
-#define INTEL 0		//INTEL for intel skylake, IBM for power8
+#define IBM 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
 #define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
@@ -26,13 +26,13 @@ using namespace std::this_thread;
 
 std::atomic<long long unsigned> tx (0);		//counter of successful transactions
 std::atomic<long long unsigned> aborts (0);	//counter of aborts
-long long unsigned conflicts  = 0;
-long long unsigned retry      = 0;	//only for Intel
-long long unsigned illegal    = 0;	//only for IBM
-long long unsigned capacity   = 0;
-long long unsigned nesting    = 0;
-long long unsigned userAbort  = 0;
-long long unsigned persistent = 0;	//only for IBM
+std::atomic<long long unsigned> conflicts (0);
+std::atomic<long long unsigned> retry (0);	//only for Intel
+std::atomic<long long unsigned> illegal (0);	//only for IBM
+std::atomic<long long unsigned> capacity (0);
+std::atomic<long long unsigned> nesting (0);
+std::atomic<long long unsigned> userAbort (0);
+std::atomic<long long unsigned> persistent (0);	//only for IBM
 
 char* tmp;	//the global variable where we make writes inside of transaction
 
@@ -156,14 +156,9 @@ void test (const int volume, int threadNum, int param)
 				printf ("Unknown reason :( \n");
 #endif
 			}
-			
-//				printf ("Failure address: %ld; Failure code: %lld\n", __TM_failure_address (TM_buff), __TM_failure_code (TM_buff));
-			
-//			printf ("trans aborts %llu \n", aborts);
 			aborts++;
 		}
 	}
-	//printf ("Thread #%d is on CPU %d\n", threadNum, sched_getcpu());
 	return;
 }
 
@@ -199,9 +194,9 @@ int main (int argc, char** argv)
 #endif
 
 #ifdef IBM	
-	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts, illegal, capacity, nesting, userAbort, persistent);
+	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), illegal.load(), capacity.load(), nesting.load(), userAbort.load(), persistent.load());
 #endif
 #ifdef INTEL
-	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts, retry, capacity, nesting, userAbort);
+	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), retry.load(), capacity.load(), nesting.load(), userAbort.load());
 #endif
 }
