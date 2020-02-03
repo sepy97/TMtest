@@ -1,6 +1,6 @@
-#define IBM 0		//INTEL for intel skylake, IBM for power8
+#define INTEL 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -33,6 +33,7 @@ std::atomic<long long unsigned> capacity (0);
 std::atomic<long long unsigned> nesting (0);
 std::atomic<long long unsigned> userAbort (0);
 std::atomic<long long unsigned> persistent (0);	//only for IBM
+std::atomic<long long unsigned> debug (0); 	//only for Intel
 
 char* tmp;	//the global variable where we make writes inside of transaction
 
@@ -150,6 +151,15 @@ void test (const int volume, int threadNum, int param)
 				persistent++;
 			}
 #endif
+#ifdef INTEL
+                        else if (status & _XABORT_DEBUG)
+                        {
+#ifdef DEBUG
+                                printf ("Debug! \n");
+#endif
+                                debug++;
+                        }
+#endif
 			else 
 			{
 #ifdef DEBUG
@@ -197,6 +207,6 @@ int main (int argc, char** argv)
 	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), illegal.load(), capacity.load(), nesting.load(), userAbort.load(), persistent.load());
 #endif
 #ifdef INTEL
-	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), retry.load(), capacity.load(), nesting.load(), userAbort.load());
+	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nDebug: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), retry.load(), capacity.load(), nesting.load(), debug.load(), userAbort.load());
 #endif
 }
