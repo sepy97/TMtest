@@ -1,4 +1,4 @@
-#define IBM 0         //INTEL for intel skylake, IBM for power8
+#define INTEL 0         //INTEL for intel skylake, IBM for power8
 #define RELEASE 0       //DEBUG for printing dump
 
 #include <cstdio>
@@ -32,26 +32,11 @@ std::atomic<long long unsigned> debug (0);	//only for INTEL
         TM_buff_type TM_buff;			//only for IBM - buffer contains information about currently active transaction
 #endif
 
-#define INIT_PUSH 1000
+#define INIT_PUSH 100000
 #define MAXTHREADNUM 100
 #define MAX_VOLUME 1000000
 
 using namespace std;
-
-class FastRandom {
-private:
-	unsigned long long rnd;
-public:
-	FastRandom(unsigned long long seed) { //time + threadnum
-		rnd = seed;
-	}
-	unsigned long long rand() {
-		rnd ^= rnd << 21;
-		rnd ^= rnd >> 35;
-		rnd ^= rnd << 4;
-		return rnd;
-	}
-};
 
 struct node
 {
@@ -104,7 +89,7 @@ void split (treap root, treap& left, treap& right, int key, treap* dupl)
 		auto volatile vlr = root->right;
 #ifdef INTEL
                 unsigned status = _xbegin ();
-		if (status & _XBEGIN_STARTED)
+		if (status == _XBEGIN_STARTED)
 #endif
 #ifdef IBM
                 if ( __TM_begin (TM_buff) )
@@ -235,7 +220,7 @@ void merge (treap left, treap right, treap& result)
 		auto volatile vr = *right;
 #ifdef INTEL
 		unsigned status = _xbegin ();
-		if (status & _XBEGIN_STARTED)
+		if (status == _XBEGIN_STARTED)
 #endif
 #ifdef IBM
 		if ( __TM_begin (TM_buff) )
@@ -454,7 +439,7 @@ int main (int argc, char** argv)
 		
 	}
 
-	dumpTreap (toTest, 1);	
+	//dumpTreap (toTest, 1);	
 
 	std::thread thr[maxThreads];
 	
@@ -478,5 +463,5 @@ int main (int argc, char** argv)
 #endif
 
 
-	dumpTreap (toTest, 1);
+	//dumpTreap (toTest, 1);
 }
