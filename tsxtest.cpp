@@ -1,6 +1,6 @@
 #define INTEL 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
