@@ -1,6 +1,6 @@
 #define IBM 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -55,7 +55,7 @@ void test (const int volume, int threadNum, int param)
 		memory = param;
 #endif
 		iter = rand() % memory;
-		tmp = (char*) calloc (memory, sizeof(char));
+//		tmp = (char*) calloc (memory, sizeof(char));
 		sleep_until(system_clock::now() + milliseconds(residue));
 #ifdef INTEL
 		unsigned status = _xbegin();
@@ -182,6 +182,13 @@ int main (int argc, char** argv)
 	}
 
 	std::thread thr[maxThreads];
+
+#ifdef FREQTEST
+	tmp = (char*) calloc (10, sizeof (char));
+#endif
+#ifdef MEMTEST
+	tmp = (char*) calloc (param, sizeof (char));
+#endif
 	
 	for (int i = 0; i < maxThreads; i++)
 	{
@@ -197,19 +204,22 @@ int main (int argc, char** argv)
 	}
 
 #ifdef FREQTEST
-	printf  ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
 	FILE* tx_out = fopen ("freq.csv", "a");
-	fprintf (tx_out, "%d ; %llu ; %llu ; \n", param, tx.load(), aborts.load());
-	fclose (tx_out);
 #endif
 #ifdef MEMTEST
 	printf ("number of transactions and aborts with allocated memory of %d bytes before transaction: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+	FILE* tx_out = fopen ("mem.csv", "a");
 #endif
+        fprintf (tx_out, "%d ; %llu ; %llu ; \n", param, tx.load(), aborts.load());
 
 #ifdef IBM	
 	printf ("Conflicts: %lld \nIllegal instructions: %lld \nFootprint exceeded: %lld \nNesting depth exceeded: %lld \nUser aborts: %lld \nPersistent failure: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), illegal.load(), capacity.load(), nesting.load(), userAbort.load(), persistent.load());
+        fprintf (tx_out, " ; %lld ; %lld ; %lld ; %lld ; %lld ; %lld ; \n", conflicts.load(), illegal.load(), capacity.load(), nesting.load(), userAbort.load(), persistent.load());
 #endif
 #ifdef INTEL
-	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nDebug: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n", conflicts.load(), retry.load(), capacity.load(), nesting.load(), debug.load(), userAbort.load());
+	printf ("Conflicts: %lld \nRetry is possible: %lld \nCapacity exceeded: %lld \nNesting depth exceeded: %lld \nDebug: %lld \nUser aborts: %lld \n******************************************************************************************************\n\n\n",                  conflicts.load(), retry.load(), capacity.load(), nesting.load(), debug.load(), userAbort.load());
+        fprintf (tx_out, " ; %lld ; %lld ; %lld ; %lld ; %lld ; %lld ; \n", conflicts.load(), retry.load(), capacity.load(), nesting.load(), debug.load(), userAbort.load());
 #endif
+        fclose (tx_out);
 }
