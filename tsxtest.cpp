@@ -1,4 +1,4 @@
-#define INTEL 0		//INTEL for intel skylake, IBM for power8
+#define IBM 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
 #define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
@@ -197,7 +197,10 @@ int main (int argc, char** argv)
 	}
 
 #ifdef FREQTEST
-	printf ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+	printf  ("number of transactions and aborts with time delay %d milliseconds between transactions: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());
+	FILE* tx_out = fopen ("freq.csv", "a");
+	fprintf (tx_out, "%d ; %llu ; %llu ; \n", param, tx.load(), aborts.load());
+	fclose (tx_out);
 #endif
 #ifdef MEMTEST
 	printf ("number of transactions and aborts with allocated memory of %d bytes before transaction: %llu vs %llu\n\n\n", param, tx.load(), aborts.load());

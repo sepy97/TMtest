@@ -1,4 +1,4 @@
-#define INTEL 0         //INTEL for intel skylake, IBM for power8
+#define IBM 0         //INTEL for intel skylake, IBM for power8
 #define RELEASE 0       //DEBUG for printing dump
 
 #include <cstdio>
