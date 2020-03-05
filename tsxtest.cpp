@@ -1,6 +1,6 @@
-#define IBM 0		//INTEL for intel skylake, IBM for power8
+#define INTEL 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -17,8 +17,10 @@
 #endif
 #include <chrono>
 
-#define NUMOFTRANS 1000000
+#define NUMOFTRANS 10000000
+#define MAXTHREADS 4 
 
+int thrval[NUMOFTRANS];
 
 using namespace std;
 using namespace std::chrono;
@@ -37,8 +39,21 @@ std::atomic<long long unsigned> debug (0); 	//only for Intel
 
 char* tmp;	//the global variable where we make writes inside of transaction
 
+std::thread thr[MAXTHREADS];
+//pthread_t thr[MAXTHREADS];
+cpu_set_t cpuset;
+//CPU_ZERO (&cpuset);
+
 void test (const int volume, int threadNum, int param)
 {
+	//int schedThread = sched_getcpu();
+
+	//printf ("@BEGIN: Thread #%d is on CPU %d\n", threadNum, sched_getcpu());
+	CPU_ZERO (&cpuset);
+	CPU_SET (threadNum*2, &cpuset);
+        pthread_setaffinity_np (thr[threadNum].native_handle(), sizeof(cpu_set_t), &cpuset);
+	//int schedThread = sched_getcpu();
+
 	int memory = 16;
 	int residue = 10;
 	int iter = 0;
@@ -57,6 +72,11 @@ void test (const int volume, int threadNum, int param)
 		iter = rand() % memory;
 //		tmp = (char*) calloc (memory, sizeof(char));
 		sleep_until(system_clock::now() + milliseconds(residue));
+		//if (schedThread != sched_getcpu()) printf ("Threadnum %d switched from %d to %d\n", threadNum, schedThread, sched_getcpu());
+		//thrval[threadNum*volume+i] = sched_getcpu();
+		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
+
+//		printf ("@@AWAKE: Thread #%d is on CPU %d\n", threadNum, sched_getcpu());
 #ifdef INTEL
 		unsigned status = _xbegin();
 		if (status == _XBEGIN_STARTED)
@@ -169,19 +189,21 @@ void test (const int volume, int threadNum, int param)
 			aborts++;
 		}
 	}
+
+
 	return;
 }
 
 int main (int argc, char** argv)
 {
-	int maxThreads = 10;
+	//int maxThreads = 10; //10;
 	int param = 10;
 	if (argc > 1)
 	{
 		param = atoi(argv[1]);
 	}
 
-	std::thread thr[maxThreads];
+//	std::thread thr[maxThreads];
 
 #ifdef FREQTEST
 	tmp = (char*) calloc (10, sizeof (char));
@@ -190,17 +212,24 @@ int main (int argc, char** argv)
 	tmp = (char*) calloc (param, sizeof (char));
 #endif
 	
-	for (int i = 0; i < maxThreads; i++)
+	CPU_ZERO (&cpuset);
+	for (int i = 0; i < MAXTHREADS; i++)
 	{
-		thr[i] = std::thread (test, NUMOFTRANS/maxThreads, i, param);		
-		cpu_set_t cpuset;
+		thr[i] = std::thread (test, NUMOFTRANS/MAXTHREADS, i, param);	
+		
+		//thr[i] = 
+		//pthread_create(&(thr[i]), NULL, test, NUMOFTRANS/MAXTHREADS, i, param);		
+		/*cpu_set_t cpuset;
 		CPU_ZERO (&cpuset);
 		pthread_setaffinity_np (thr[i].native_handle(), sizeof(cpu_set_t), &cpuset);
+		thr[i] = std::thread (test, NUMOFTRANS/maxThreads, i, param);		*/
 	}
 
-	for (int i = 0; i < maxThreads; i++)
+	void* ret = NULL;
+	for (int i = 0; i < MAXTHREADS; i++)
 	{
-		thr[i].join ();
+		//pthread_join (thr[i], &ret);
+		thr[i].join();
 	}
 
 #ifdef FREQTEST
