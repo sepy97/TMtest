@@ -20,7 +20,16 @@
 #define NUMOFTRANS 10000000
 #define MAXTHREADS 4 
 
+#define MAXRAND50 141   //loop takes 50ms
+#define MAXRAND100 199  //loop takes 100ms
+#define MAXRAND20 88    //loop takes 20ms
+#define MAXRAND5 40     //loop takes 5ms        
+#define MAXRAND10 60    //loop takes 10ms
+
+#define RANDSIZE 10000000
+
 int thrval[NUMOFTRANS];
+int randArr[NUMOFTRANS];
 
 using namespace std;
 using namespace std::chrono;
@@ -69,12 +78,44 @@ void test (const int volume, int threadNum, int param)
 #ifdef MEMTEST
 		memory = param;
 #endif
-		iter = rand() % memory;
-//		tmp = (char*) calloc (memory, sizeof(char));
-		sleep_until(system_clock::now() + milliseconds(residue));
-		//if (schedThread != sched_getcpu()) printf ("Threadnum %d switched from %d to %d\n", threadNum, schedThread, sched_getcpu());
-		//thrval[threadNum*volume+i] = sched_getcpu();
-		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
+//		iter = rand() % memory;
+		//sleep_until(system_clock::now() + milliseconds(residue));	@@@@
+		int randtmp = 0;
+		int bound = 0;
+		switch (residue)
+		{
+			case 5:
+				bound = MAXRAND5;
+				break;
+			case 10:
+				bound = MAXRAND10;
+				break;
+			case 20:
+				bound = MAXRAND20;
+				break;
+			case 50:
+				bound = MAXRAND50;
+				break;
+			case 100:
+				bound = MAXRAND100;
+				break;
+			default:
+				bound = 30;
+		
+		}
+	
+		for (int j = 0; j < bound; j++)
+                {
+                        for (int i = 0; i < bound; i++)
+                        {
+                                randtmp += randArr [i*j];
+                        }
+                        randtmp++;
+                }
+		
+		iter = randArr [i] % memory;
+
+//		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
 
 //		printf ("@@AWAKE: Thread #%d is on CPU %d\n", threadNum, sched_getcpu());
 #ifdef INTEL
@@ -206,12 +247,17 @@ int main (int argc, char** argv)
 //	std::thread thr[maxThreads];
 
 #ifdef FREQTEST
-	tmp = (char*) calloc (10, sizeof (char));
+	tmp = (char*) calloc (16, sizeof (char));
 #endif
 #ifdef MEMTEST
 	tmp = (char*) calloc (param, sizeof (char));
 #endif
 	
+	for (int i = 0; i < NUMOFTRANS; i++)
+	{
+		randArr[i] = rand() % NUMOFTRANS;
+	}
+
 	CPU_ZERO (&cpuset);
 	for (int i = 0; i < MAXTHREADS; i++)
 	{
