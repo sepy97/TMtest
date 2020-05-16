@@ -17,7 +17,7 @@
 #endif
 #include <chrono>
 
-#define NUMOFTRANS 10000000
+#define NUMOFTRANS 1000000
 #define MAXTHREADS 4 
 
 #define MAXRAND50 141   //loop takes 50ms
@@ -52,6 +52,7 @@ std::thread thr[MAXTHREADS];
 //pthread_t thr[MAXTHREADS];
 cpu_set_t cpuset;
 //CPU_ZERO (&cpuset);
+unsigned long long Randtmp1[MAXTHREADS];
 
 void test (const int volume, int threadNum, int param)
 {
@@ -80,7 +81,7 @@ void test (const int volume, int threadNum, int param)
 #endif
 //		iter = rand() % memory;
 		//sleep_until(system_clock::now() + milliseconds(residue));	@@@@
-		int randtmp = 0;
+		unsigned long long randtmp = 0;
 		int bound = 0;
 		switch (residue)
 		{
@@ -114,6 +115,7 @@ void test (const int volume, int threadNum, int param)
                 }
 		
 		iter = randArr [i] % memory;
+		Randtmp1[threadNum] = randtmp;
 
 //		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
 
@@ -230,7 +232,7 @@ void test (const int volume, int threadNum, int param)
 			aborts++;
 		}
 	}
-
+	
 
 	return;
 }
@@ -276,6 +278,11 @@ int main (int argc, char** argv)
 	{
 		//pthread_join (thr[i], &ret);
 		thr[i].join();
+	}
+
+	for (int i = 0; i < MAXTHREADS; i++)
+	{
+		printf ("%llu \n", Randtmp1[i]);
 	}
 
 #ifdef FREQTEST
