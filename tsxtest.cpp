@@ -18,13 +18,13 @@
 #include <chrono>
 
 #define NUMOFTRANS 1000000
-#define MAXTHREADS 4 
+#define MAXTHREADS 4
 
-#define MAXRAND50 141   //loop takes 50ms
-#define MAXRAND100 199  //loop takes 100ms
-#define MAXRAND20 88    //loop takes 20ms
-#define MAXRAND5 40     //loop takes 5ms        
-#define MAXRAND10 60    //loop takes 10ms
+#define MAXRAND50 250   //loop takes 50ms
+#define MAXRAND100 355  //loop takes 100ms
+#define MAXRAND20 155   //loop takes 20ms
+#define MAXRAND5 75     //loop takes 5ms        
+#define MAXRAND10 110   //loop takes 10ms
 
 #define RANDSIZE 10000000
 
@@ -71,51 +71,58 @@ void test (const int volume, int threadNum, int param)
 	TM_buff_type TM_buff;	
 #endif
 
-	unsigned long long randtmp = 0;
-	for (int i = 0; i < volume; i++)
-	{
 #ifdef FREQTEST
-		residue = param;
+                residue = param;
 #endif
 #ifdef MEMTEST
-		memory = param;
+                memory = param;
 #endif
+
+	unsigned long long randtmp = 0;
+	int bound = 0;
+                switch (residue)
+                {
+                case 5:
+	                bound = MAXRAND5;
+                        break;
+                case 10:
+                        bound = MAXRAND10;
+                        break;
+                case 20:
+                        bound = MAXRAND20;
+                        break;
+                case 50:
+                        bound = MAXRAND50;
+                        break;
+                case 100:
+                        bound = MAXRAND100;
+                        break;
+                default:
+                        bound = 10000;
+
+                }
+	printf ("%d %d \n", residue, bound);
+
+	for (int i = 0; i < volume; i++)
+	{
 //		iter = rand() % memory;
 		//sleep_until(system_clock::now() + milliseconds(residue));	@@@@
-		int bound = 0;
-		switch (residue)
-		{
-			case 5:
-				bound = MAXRAND5;
-				break;
-			case 10:
-				bound = MAXRAND10;
-				break;
-			case 20:
-				bound = MAXRAND20;
-				break;
-			case 50:
-				bound = MAXRAND50;
-				break;
-			case 100:
-				bound = MAXRAND100;
-				break;
-			default:
-				bound = 30;
+
+//		unsigned long time1 = clock ();	
 		
-		}
-	
 		for (int j = 0; j < bound; j++)
                 {
-                        for (int i = 0; i < bound; i++)
+                        for (int k = 0; k < bound; k++)
                         {
-                                randtmp += randArr [i*j];
+                                randtmp += randArr [(i*(threadNum+1)+(k+bound*j))%RANDSIZE];
                         }
-                        randtmp++;
+                        randtmp*=(i+1);
                 }
-		
+//		unsigned long time2 = clock () - time1;	
+//	        printf ("%lu \n", time2);
+
+		Randtmp1[threadNum] += randtmp;
 		iter = randArr [i] % memory;
-		Randtmp1[0] += randtmp;
 
 //		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
 
