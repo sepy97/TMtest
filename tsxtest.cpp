@@ -71,6 +71,7 @@ void test (const int volume, int threadNum, int param)
 	TM_buff_type TM_buff;	
 #endif
 
+	unsigned long long randtmp = 0;
 	for (int i = 0; i < volume; i++)
 	{
 #ifdef FREQTEST
@@ -81,7 +82,6 @@ void test (const int volume, int threadNum, int param)
 #endif
 //		iter = rand() % memory;
 		//sleep_until(system_clock::now() + milliseconds(residue));	@@@@
-		unsigned long long randtmp = 0;
 		int bound = 0;
 		switch (residue)
 		{
@@ -115,7 +115,7 @@ void test (const int volume, int threadNum, int param)
                 }
 		
 		iter = randArr [i] % memory;
-		Randtmp1[threadNum] = randtmp;
+		Randtmp1[0] += randtmp;
 
 //		if (threadNum*2 != sched_getcpu()) printf ("Threadnum %d is not equal to sched %d\n", threadNum*2, sched_getcpu());
 
