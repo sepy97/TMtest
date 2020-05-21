@@ -1,6 +1,6 @@
 #define INTEL 0		//INTEL for intel skylake, IBM for power8
 #define RELEASE 0	//DEBUG for printing dump
-#define FREQTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
+#define MEMTEST 0	//FREQTEST for testing transactions with different frequency, MEMTEST for testing transactions with different size of allocated memory
 
 #include <cstdio>
 #include <cstdlib>
@@ -20,11 +20,11 @@
 #define NUMOFTRANS 1000000
 #define MAXTHREADS 4
 
-#define MAXRAND50 250   //loop takes 50ms
-#define MAXRAND100 355  //loop takes 100ms
-#define MAXRAND20 155   //loop takes 20ms
-#define MAXRAND5 75     //loop takes 5ms        
-#define MAXRAND10 110   //loop takes 10ms
+#define MAXRAND50 4150   //loop takes 50ms
+#define MAXRAND100 5850  //loop takes 100ms
+#define MAXRAND20 2650   //loop takes 20ms
+#define MAXRAND5 1400	//loop takes 5ms        
+#define MAXRAND10 1900    //loop takes 10ms
 
 #define RANDSIZE 10000000
 
@@ -103,21 +103,29 @@ void test (const int volume, int threadNum, int param)
                 }
 	printf ("%d %d \n", residue, bound);
 
+	uint64_t resTime = 0;
 	for (int i = 0; i < volume; i++)
 	{
 //		iter = rand() % memory;
 		//sleep_until(system_clock::now() + milliseconds(residue));	@@@@
 
 //		unsigned long time1 = clock ();	
+//		uint64_t tick = __rdtsc();
 		
-		for (int j = 0; j < bound; j++)
+		for (unsigned long long j = 0; j < bound; j++)
                 {
-                        for (int k = 0; k < bound; k++)
+                        for (unsigned long long k = 0; k < bound; k++)
                         {
-                                randtmp += randArr [(i*(threadNum+1)+(k+bound*j))%RANDSIZE];
+                                randtmp += randArr [(i*(threadNum+1)%RANDSIZE+((k%100)*(j%100))%RANDSIZE)%RANDSIZE];
                         }
-                        randtmp*=(i+1);
+                        randtmp+=(i+1);
+//			printf ("%d \n", j);
                 }
+		
+//		uint64_t tick2 = __rdtsc();
+	        //printf ("%lu \n", (tick2 - tick)/2600000);
+//		resTime = (tick2-tick)/2600000;
+
 //		unsigned long time2 = clock () - time1;	
 //	        printf ("%lu \n", time2);
 
@@ -240,7 +248,7 @@ void test (const int volume, int threadNum, int param)
 		}
 	}
 	
-
+//	printf ("%lu \n", resTime);
 	return;
 }
 
